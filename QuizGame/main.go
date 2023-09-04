@@ -2,13 +2,18 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 )
 
 func main() {
-	file, err := os.Open("problems.csv")
+	var (
+		file_name = flag.String("csv", "problems.csv", "a csv file name")
+	)
+	flag.Parse()
+	file, err := os.Open(*file_name)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,7 +31,6 @@ func main() {
 		fmt.Printf("Question #%v: %v\n", i+1, question)
 		var input string
 		fmt.Scan(&input)
-
 		if input == answer {
 			score += 1
 		}
