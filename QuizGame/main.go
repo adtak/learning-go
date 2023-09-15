@@ -63,6 +63,6 @@ func readCsv(file_name *string) [][]string {
 
 func userInput(ch chan string) {
 	var input string
-	fmt.Scan(&input)
+	fmt.Scanf("%s\n", &input)
 	ch <- input
 }
