@@ -12,6 +12,7 @@ import (
 func main() {
 	var (
 		file_name = flag.String("csv", "problems.csv", "a csv file name")
+		limit     = flag.Int("limit", 3, "the time limit for the quiz in secounds")
 	)
 	flag.Parse()
 
@@ -29,7 +30,7 @@ func main() {
 			if input == answer {
 				score += 1
 			}
-		case <-time.After(3 * time.Second):
+		case <-time.After(time.Duration(*limit) * time.Second):
 			fmt.Println("Time out.")
 		}
 	}
