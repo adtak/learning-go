@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -13,17 +14,24 @@ func main() {
 		file_name = flag.String("csv", "problems.csv", "a csv file name")
 	)
 	flag.Parse()
+
 	rows := readCsv(file_name)
-	var score, amount int32
+	amount, score := len(rows), 0
+	ch := make(chan string)
+
 	for i, v := range rows {
 		question, answer := v[0], v[1]
 		fmt.Printf("Question #%v: %v\n", i+1, question)
-		var input string
-		fmt.Scan(&input)
-		if input == answer {
-			score += 1
+
+		go userInput(ch)
+		select {
+		case input := <-ch:
+			if input == answer {
+				score += 1
+			}
+		case <-time.After(3 * time.Second):
+			fmt.Println("Time out.")
 		}
-		amount += 1
 	}
 	fmt.Printf("You scored %v out of %v\n", score, amount)
 }
@@ -41,4 +49,10 @@ func readCsv(file_name *string) [][]string {
 		log.Fatal(err)
 	}
 	return rows
+}
+
+func userInput(ch chan string) {
+	var input string
+	fmt.Scan(&input)
+	ch <- input
 }
