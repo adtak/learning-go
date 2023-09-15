@@ -13,18 +13,7 @@ func main() {
 		file_name = flag.String("csv", "problems.csv", "a csv file name")
 	)
 	flag.Parse()
-	file, err := os.Open(*file_name)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	r := csv.NewReader(file)
-	rows, err := r.ReadAll()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	rows := readCsv(file_name)
 	var score, amount int32
 	for i, v := range rows {
 		question, answer := v[0], v[1]
@@ -37,4 +26,19 @@ func main() {
 		amount += 1
 	}
 	fmt.Printf("You scored %v out of %v\n", score, amount)
+}
+
+func readCsv(file_name *string) [][]string {
+	file, err := os.Open(*file_name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	r := csv.NewReader(file)
+	rows, err := r.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return rows
 }
