@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	urlshort "github.com/adtak/UrlShort"
+	"github.com/adtak/urlshort"
 )
 
 func main() {
