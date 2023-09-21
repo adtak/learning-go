@@ -1,6 +1,7 @@
 package urlshort
 
 import (
+	"database/sql"
 	"net/http"
 
 	"gopkg.in/yaml.v3"
@@ -64,4 +65,37 @@ func buildMap(yml []pathUrl) map[string]string {
 		results[element.Path] = element.Url
 	}
 	return results
+}
+
+func DBHandler(fallback http.Handler) (http.HandlerFunc, error) {
+	db, err := sql.Open("pgx", "postgres://uer:password@localhost:5430/test_db")
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	pathMap, err := selectRows(db)
+	if err != nil {
+		return nil, err
+	}
+	return MapHandler(pathMap, fallback), nil
+}
+
+func selectRows(db *sql.DB) (map[string]string, error){
+	rows, err := db.Query("SELECT * FROM path_url")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	results := make(map[string]string)
+	for rows.Next() {
+		var path string
+		var url string
+		if err := rows.Scan(&path, &url); err != nil {
+			return nil, err
+		}
+		results[path] = url
+	}
+	return results, nil
 }
