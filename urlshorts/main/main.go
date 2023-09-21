@@ -1,31 +1,31 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/adtak/urlshort"
 )
 
 func main() {
-	mux := defaultMux()
+	var (
+		file_name = flag.String("yaml", "path-url.yaml", "a yaml file to map url from path")
+	)
+	flag.Parse()
 
 	// Build the MapHandler using the mux as the fallback
 	pathsToUrls := map[string]string{
 		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
 		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
 	}
-	mapHandler := urlshort.MapHandler(pathsToUrls, mux)
+	mapHandler := urlshort.MapHandler(pathsToUrls, defaultMux())
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
-	yaml := `
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
+	yml := readYaml(*file_name)
+	yamlHandler, err := urlshort.YAMLHandler(yml, mapHandler)
 	if err != nil {
 		panic(err)
 	}
@@ -41,4 +41,12 @@ func defaultMux() *http.ServeMux {
 
 func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, world!")
+}
+
+func readYaml(file_name string) []byte {
+	file, err := os.ReadFile(file_name)
+	if err != nil {
+		panic(err)
+	}
+	return file
 }
