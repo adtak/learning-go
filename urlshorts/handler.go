@@ -2,8 +2,11 @@ package urlshort
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"os"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"gopkg.in/yaml.v3"
 )
 
@@ -68,7 +71,10 @@ func buildMap(yml []pathUrl) map[string]string {
 }
 
 func DBHandler(fallback http.Handler) (http.HandlerFunc, error) {
-	db, err := sql.Open("pgx", "postgres://uer:password@localhost:5430/test_db")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	dataSouece := fmt.Sprintf("postgres://%s:%s@localhost:5430/test_db", dbUser, dbPassword)
+	db, err := sql.Open("pgx", dataSouece)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +87,7 @@ func DBHandler(fallback http.Handler) (http.HandlerFunc, error) {
 	return MapHandler(pathMap, fallback), nil
 }
 
-func selectRows(db *sql.DB) (map[string]string, error){
+func selectRows(db *sql.DB) (map[string]string, error) {
 	rows, err := db.Query("SELECT * FROM path_url")
 	if err != nil {
 		return nil, err
@@ -95,6 +101,7 @@ func selectRows(db *sql.DB) (map[string]string, error){
 		if err := rows.Scan(&path, &url); err != nil {
 			return nil, err
 		}
+		fmt.Printf("Selected path %s to %s", path, url)
 		results[path] = url
 	}
 	return results, nil

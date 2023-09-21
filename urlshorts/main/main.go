@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/adtak/urlshort"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -14,6 +15,10 @@ func main() {
 		file_name = flag.String("yaml", "path-url.yaml", "a yaml file to map url from path")
 	)
 	flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 
 	// Build the MapHandler using the mux as the fallback
 	pathsToUrls := map[string]string{
@@ -29,8 +34,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	dbHandler, err := urlshort.DBHandler(yamlHandler)
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+	http.ListenAndServe(":8080", dbHandler)
 }
 
 func defaultMux() *http.ServeMux {
