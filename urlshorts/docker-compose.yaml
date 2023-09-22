@@ -1,9 +1,12 @@
 version: "3"
 services:
   db:
-    build: .
+    container_name: go-postgres-sample
+    image: postgres:16-alpine
     ports:
       - 5430:5432
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
