@@ -71,24 +71,26 @@ func buildMap(yml []pathUrl) map[string]string {
 }
 
 func DBHandler(fallback http.Handler) (http.HandlerFunc, error) {
-	dbUser := os.Getenv("POSTGRES_USER")
-	dbPassword := os.Getenv("POSTGRES_PASSWORD")
-	dataSouece := fmt.Sprintf("postgres://%s:%s@localhost:5430/test_db", dbUser, dbPassword)
+	dataSouece := fmt.Sprintf(
+		"postgres://%s:%s@localhost:5432/go-dev",
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+	)
 	db, err := sql.Open("pgx", dataSouece)
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 
-	pathMap, err := selectRows(db)
+	pathMap, err := selectPathUrls(db)
 	if err != nil {
 		return nil, err
 	}
 	return MapHandler(pathMap, fallback), nil
 }
 
-func selectRows(db *sql.DB) (map[string]string, error) {
-	rows, err := db.Query("SELECT * FROM path_url")
+func selectPathUrls(db *sql.DB) (map[string]string, error) {
+	rows, err := db.Query("SELECT from_path, to_url FROM path_url;")
 	if err != nil {
 		return nil, err
 	}
@@ -96,12 +98,11 @@ func selectRows(db *sql.DB) (map[string]string, error) {
 
 	results := make(map[string]string)
 	for rows.Next() {
-		var path string
-		var url string
+		var path, url string
 		if err := rows.Scan(&path, &url); err != nil {
 			return nil, err
 		}
-		fmt.Printf("Selected path %s to %s", path, url)
+		fmt.Printf("Selected path %s to %s from DB.\n", path, url)
 		results[path] = url
 	}
 	return results, nil
